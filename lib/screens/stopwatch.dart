@@ -9,7 +9,7 @@ class StopWatch extends StatefulWidget {
 }
 
 class _StopWatchState extends State<StopWatch> {
-  List<String> Laps = [];
+  List<String> laps = [];
 
   // formate timer
   String _formateTimer(int milliseconds) {
@@ -21,7 +21,9 @@ class _StopWatchState extends State<StopWatch> {
 
   bool isStopWatchRunning = false;
   late Timer globalTimer;
+  late Timer lapTimer;
   int stopWatchCounter = 0;
+  int lapCounter = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +34,11 @@ class _StopWatchState extends State<StopWatch> {
           children: [
             // the counter
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 180.0),
+              padding: const EdgeInsets.symmetric(vertical: 130.0),
               child: Text(
                 _formateTimer(stopWatchCounter),
                 style: TextStyle(
-                  fontSize: 35,
+                  fontSize: 65,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -52,9 +54,15 @@ class _StopWatchState extends State<StopWatch> {
                   GestureDetector(
                     onTap: () {
                       if (isStopWatchRunning == false) {
-                        Laps = [];
                         setState(() {
+                          laps = [];
                           stopWatchCounter = 0;
+                          lapCounter = 0;
+                        });
+                      } else {
+                        laps.add(_formateTimer(lapCounter));
+                        setState(() {
+                          lapCounter = 0;
                         });
                       }
                     },
@@ -83,6 +91,7 @@ class _StopWatchState extends State<StopWatch> {
                         setState(() {
                           isStopWatchRunning = true;
                         });
+                        // globalTimer
                         globalTimer = Timer.periodic(
                           Duration(milliseconds: 1),
                           (duration) {
@@ -91,8 +100,18 @@ class _StopWatchState extends State<StopWatch> {
                             });
                           },
                         );
+                        // lapTimer
+                        lapTimer = Timer.periodic(Duration(milliseconds: 1), (
+                          duration,
+                        ) {
+                          setState(() {
+                            lapCounter++;
+                          });
+                        });
                       } else {
                         globalTimer.cancel();
+                        lapTimer.cancel();
+
                         setState(() {
                           isStopWatchRunning = false;
                         });
@@ -120,38 +139,91 @@ class _StopWatchState extends State<StopWatch> {
               ),
             ),
             // Laps
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: Laps.length,
-                separatorBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    child: Divider(height: 2, color: Colors.grey[800]),
-                  );
-                },
-                itemBuilder: (context, index) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            SizedBox(
+              height: 430,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 25.0,
+                    vertical: 5,
+                  ),
+                  child: Column(
                     children: [
-                      Text(
-                        "Lap ${index + 1}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w200,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Visibility(
+                          visible:
+                              isStopWatchRunning == true || lapCounter != 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Lap ${laps.length + 1}",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                _formateTimer(lapCounter),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      Text(
-                        Laps.toString(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w200,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: Visibility(
+                          visible:
+                              isStopWatchRunning == true || lapCounter != 0,
+                          child: Divider(height: 2, color: Colors.grey[800]),
                         ),
+                      ),
+                      ListView.separated(
+                        reverse: true,
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.all(0),
+                        itemCount: laps.length,
+                        separatorBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 15.0),
+                            child: Divider(height: 2, color: Colors.grey[800]),
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Lap ${index + 1}",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                laps[index],
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
-                  );
-                },
+                  ),
+                ),
               ),
             ),
           ],
